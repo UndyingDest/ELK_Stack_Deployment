@@ -1,0 +1,33 @@
+---
+- name: installing and launching metricbeat
+  hosts: webservers
+  become: yes
+  tasks:
+
+  - name: download metricbeat deb
+    copy:
+      remote_src: no
+      src: /etc/ansible/metricbeat-7.4.0-amd64.deb
+      dest: /var/cache/apt/archives
+
+  - name: install metricbeat deb
+    command: sudo dpkg -i /var/cache/apt/archives/metricbeat-7.4.0-amd64.deb
+
+  - name: drop in metricbeat.yml
+    copy:
+      src: /etc/ansible/metricbeat-config.yml
+      dest: /etc/metricbeat/metricbeat.yml
+
+  - name: Metricbeat Docker
+    command: sudo metricbeat modules enable docker
+
+  - name: setup metricbeat
+    command: sudo metricbeat setup
+
+  - name: start metricbeat service
+    command: sudo service metricbeat start
+
+  - name: enable service metricbeat on boot
+    systemd:
+      name: metricbeat
+      enabled: yes

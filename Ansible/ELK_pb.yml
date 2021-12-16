@@ -1,0 +1,47 @@
+---
+-  name: Add ELK to VM using Docker
+   hosts: ELK
+   remote_user: azureuser
+   become: true
+   tasks:
+     - name: Install Docker
+       apt:
+         update_cache: yes
+         force_apt_get: yes
+         name: docker.io
+         state: present
+
+
+     - name: Install Python3-pip
+       apt:
+         force_apt_get: yes
+         name: python3-pip
+         state: present
+     - name: install Docker module
+       pip:
+         name: docker
+         state: present
+
+     - name: Alot More memory
+       sysctl:
+         name: vm.max_map_count
+         value: 262144
+         state: present
+         reload: yes
+
+     - name: Download and launch Docker ELK container
+       docker_container:
+         name: elk
+         image: sebp/elk:761
+         state: started
+         restart_policy: always
+         #ELK ports
+         published_ports:
+           - 5601:5601
+           - 9200:9200
+           - 5044:5044
+
+     - name: Enable Docker service on boot
+       systemd:
+         name: docker
+         enabled: yes
